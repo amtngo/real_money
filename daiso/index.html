@@ -1,1 +1,492 @@
-daiso/ 準備中
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>ダイソーチェック</title>
+
+<style>
+
+body{
+  margin:0;
+  padding:20px;
+  background:#f5f5f5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-radius:22px;
+  padding:28px 20px;
+  box-sizing:border-box;
+  box-shadow:0 4px 18px rgba(0,0,0,0.08);
+}
+
+.title{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:6px;
+  color:#111;
+}
+
+.sub{
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+.question{
+  font-size:24px;
+  font-weight:700;
+  text-align:center;
+  line-height:1.5;
+  margin-bottom:30px;
+  color:#111;
+}
+
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.option{
+  border:none;
+  border-radius:14px;
+  padding:7px;
+  font-size:18px;
+  font-weight:700;
+  background:#f1f1f1;
+  color:#111;
+  cursor:pointer;
+  transition:0.15s;
+}
+
+.option:active{
+  transform:scale(0.98);
+}
+
+.result-wrap{
+  display:none;
+  margin-top:30px;
+  text-align:center;
+}
+
+.result-text{
+  font-size:18px;
+  color:#666;
+  margin-bottom:8px;
+}
+
+.percent{
+  font-size:68px;
+  font-weight:800;
+  line-height:1;
+  margin-bottom:16px;
+  color:#111;
+}
+
+.percent-sub{
+  font-size:18px;
+  color:#666;
+  margin-bottom:22px;
+}
+
+.bar-wrap{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-bottom:24px;
+}
+
+.box{
+  width:22px;
+  height:22px;
+  border-radius:4px;
+  opacity:0.2;
+}
+
+.red{
+  background:#ffb3b3;
+}
+
+.yellow{
+  background:#ffe69b;
+}
+
+.green{
+  background:#b8f5b8;
+}
+
+.message{
+  font-size:17px;
+  line-height:1.7;
+  color:#444;
+  margin-top:12px;
+}
+
+.lock{
+  text-align:center;
+  font-size:18px;
+  line-height:1.9;
+  color:#444;
+  padding:36px 8px;
+  display:none;
+}
+
+.category-link{
+  margin-top:18px;
+  font-size:20px;
+  font-weight:700;
+  color:#222;
+  cursor:pointer;
+}
+
+.footer{
+  margin-top:48px;
+  text-align:center;
+  font-size:12px;
+  color:#999;
+  line-height:1.7;
+  opacity:0.75;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">ダイソーチェック</div>
+
+<div class="sub">
+選ぶだけで<br>
+今の反応割合が表示されます
+</div>
+
+<div id="quizArea">
+
+<div class="question" id="question"></div>
+
+<div class="options" id="options"></div>
+
+<div class="result-wrap" id="resultWrap">
+
+<div class="result-text">
+あなたの選択は
+</div>
+
+<div class="percent" id="percent">
+67%
+</div>
+
+<div class="percent-sub">
+この選択でした
+</div>
+
+<div class="bar-wrap" id="barWrap"></div>
+
+<div class="message" id="message"></div>
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+</div>
+
+<div class="lock" id="lockMessage">
+
+今日の割合は確認済みです。<br>
+次の確認は 10時間後にできます。
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+q:"ダイソーで結局カゴに入る物は？",
+a:["収納用品","お菓子","掃除用品","文房具"]
+},
+
+{
+q:"予定になかったのに買う物は？",
+a:["収納用品","キッチン用品","お菓子","文房具"]
+},
+
+{
+q:"毎回見てしまうコーナーは？",
+a:["収納用品","お菓子","文房具","季節商品"]
+},
+
+{
+q:"気づくと増えている物は？",
+a:["収納ケース","袋類","文房具","ケーブル"]
+},
+
+{
+q:"なぜか何個も持っている物は？",
+a:["収納用品","ボールペン","キッチン用品","掃除用品"]
+},
+
+{
+q:"買うか迷って結局買う物は？",
+a:["便利グッズ","収納用品","お菓子","文房具"]
+},
+
+{
+q:"一番コスパが良いと思う物は？",
+a:["収納用品","掃除用品","文房具","キッチン用品"]
+},
+
+{
+q:"家に一番多いダイソー商品は？",
+a:["収納用品","文房具","キッチン用品","掃除用品"]
+},
+
+{
+q:"結局よく使う物は？",
+a:["収納用品","キッチン用品","掃除用品","文房具"]
+},
+
+{
+q:"買ったのに使わなかった物は？",
+a:["便利グッズ","収納用品","文房具","キッチン用品"]
+},
+
+{
+q:"ダイソーで節約になった物は？",
+a:["収納用品","掃除用品","文房具","キッチン用品"]
+},
+
+{
+q:"毎回手に取る物は？",
+a:["お菓子","収納用品","文房具","掃除用品"]
+},
+
+{
+q:"安いとつい買う物は？",
+a:["お菓子","文房具","収納用品","キッチン用品"]
+},
+
+{
+q:"今すぐ一つもらえるなら？",
+a:["収納用品","掃除用品","キッチン用品","文房具"]
+},
+
+{
+q:"ダイソーで一番見る値段は？",
+a:["110円商品","220円商品","330円商品","550円商品"]
+},
+
+{
+q:"家で足りなくなる物は？",
+a:["電池","収納用品","掃除用品","キッチン用品"]
+},
+
+{
+q:"毎回買い足している物は？",
+a:["電池","掃除用品","収納用品","文房具"]
+},
+
+{
+q:"つい予算オーバーになる原因は？",
+a:["収納用品","お菓子","便利グッズ","季節商品"]
+},
+
+{
+q:"ダイソーで探す事が多い物は？",
+a:["収納用品","掃除用品","文房具","キッチン用品"]
+},
+
+{
+q:"一番おすすめしたい物は？",
+a:["収納用品","掃除用品","文房具","キッチン用品"]
+},
+
+{
+q:"ダイソーの楽しみは？",
+a:["新商品探し","収納アイデア","お菓子探し","便利グッズ探し"]
+}
+
+];
+
+const LOCK_HOURS = 10;
+
+const saved = localStorage.getItem("daiso_lock");
+
+if(saved){
+
+  const now = Date.now();
+
+  const diff = now - Number(saved);
+
+  if(diff < LOCK_HOURS * 60 * 60 * 1000){
+
+    document.getElementById("quizArea").style.display = "none";
+
+    document.getElementById("lockMessage").style.display = "block";
+
+  }else{
+
+    showQuestion();
+
+  }
+
+}else{
+
+  showQuestion();
+
+}
+
+function showQuestion(){
+
+  const random = questions[Math.floor(Math.random()*questions.length)];
+
+  document.getElementById("question").innerHTML = random.q;
+
+  const options = document.getElementById("options");
+
+  random.a.forEach(text=>{
+
+    const btn = document.createElement("button");
+
+    btn.className = "option";
+
+    btn.innerText = text;
+
+    btn.onclick = ()=>selectOption();
+
+    options.appendChild(btn);
+
+  });
+
+}
+
+function selectOption(){
+
+  localStorage.setItem("daiso_lock",Date.now());
+
+  document.querySelectorAll(".option").forEach(btn=>{
+
+    btn.disabled = true;
+
+  });
+
+  const percent = makePercent();
+
+  document.getElementById("percent").innerText = percent + "%";
+
+  makeBoxes(percent);
+
+  makeMessage(percent);
+
+  document.getElementById("resultWrap").style.display = "block";
+
+}
+
+function makePercent(){
+
+  const arr = [
+    31,34,37,41,43,46,
+    52,57,61,63,67,
+    72,74,76,79,83,86
+  ];
+
+  return arr[Math.floor(Math.random()*arr.length)];
+
+}
+
+function makeBoxes(percent){
+
+  const wrap = document.getElementById("barWrap");
+
+  wrap.innerHTML = "";
+
+  const active = Math.round(percent / 10);
+
+  for(let i=0;i<10;i++){
+
+    const box = document.createElement("div");
+
+    if(i<3){
+
+      box.className = "box red";
+
+    }else if(i<6){
+
+      box.className = "box yellow";
+
+    }else{
+
+      box.className = "box green";
+
+    }
+
+    if(i < active){
+
+      box.style.opacity = "1";
+
+    }
+
+    wrap.appendChild(box);
+
+  }
+
+}
+
+function makeMessage(percent){
+
+  let text = "";
+
+  if(percent <= 40){
+
+    text = "少数派になりやすい反応です";
+
+  }
+  else if(percent <= 60){
+
+    text = "意外と近い反応が集まっています";
+
+  }
+  else if(percent <= 80){
+
+    text = "かなり共感されやすい選択です";
+
+  }
+  else{
+
+    text = "かなり多く選ばれている反応です";
+
+  }
+
+  document.getElementById("message").innerHTML = text;
+
+}
+
+function goCategoryTop(){
+
+  location.href = "../";
+
+}
+
+</script>
+
+</body>
+</html>
