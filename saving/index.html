@@ -1,1 +1,492 @@
-saving/準備中
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>節約チェック</title>
+
+<style>
+
+body{
+  margin:0;
+  padding:20px;
+  background:#f5f5f5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-radius:22px;
+  padding:28px 20px;
+  box-sizing:border-box;
+  box-shadow:0 4px 18px rgba(0,0,0,0.08);
+}
+
+.title{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:6px;
+  color:#111;
+}
+
+.sub{
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+.question{
+  font-size:24px;
+  font-weight:700;
+  text-align:center;
+  line-height:1.5;
+  margin-bottom:30px;
+  color:#111;
+}
+
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.option{
+  border:none;
+  border-radius:14px;
+  padding:7px;
+  font-size:18px;
+  font-weight:700;
+  background:#f1f1f1;
+  color:#111;
+  cursor:pointer;
+  transition:0.15s;
+}
+
+.option:active{
+  transform:scale(0.98);
+}
+
+.result-wrap{
+  display:none;
+  margin-top:30px;
+  text-align:center;
+}
+
+.result-text{
+  font-size:18px;
+  color:#666;
+  margin-bottom:8px;
+}
+
+.percent{
+  font-size:68px;
+  font-weight:800;
+  line-height:1;
+  margin-bottom:16px;
+  color:#111;
+}
+
+.percent-sub{
+  font-size:18px;
+  color:#666;
+  margin-bottom:22px;
+}
+
+.bar-wrap{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-bottom:24px;
+}
+
+.box{
+  width:22px;
+  height:22px;
+  border-radius:4px;
+  opacity:0.2;
+}
+
+.red{
+  background:#ffb3b3;
+}
+
+.yellow{
+  background:#ffe69b;
+}
+
+.green{
+  background:#b8f5b8;
+}
+
+.message{
+  font-size:17px;
+  line-height:1.7;
+  color:#444;
+  margin-top:12px;
+}
+
+.lock{
+  text-align:center;
+  font-size:18px;
+  line-height:1.9;
+  color:#444;
+  padding:36px 8px;
+  display:none;
+}
+
+.category-link{
+  margin-top:18px;
+  font-size:20px;
+  font-weight:700;
+  color:#222;
+  cursor:pointer;
+}
+
+.footer{
+  margin-top:48px;
+  text-align:center;
+  font-size:12px;
+  color:#999;
+  line-height:1.7;
+  opacity:0.75;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">節約チェック</div>
+
+<div class="sub">
+選ぶだけで<br>
+今の反応割合が表示されます
+</div>
+
+<div id="quizArea">
+
+<div class="question" id="question"></div>
+
+<div class="options" id="options"></div>
+
+<div class="result-wrap" id="resultWrap">
+
+<div class="result-text">
+あなたの選択は
+</div>
+
+<div class="percent" id="percent">
+67%
+</div>
+
+<div class="percent-sub">
+この選択でした
+</div>
+
+<div class="bar-wrap" id="barWrap"></div>
+
+<div class="message" id="message"></div>
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+</div>
+
+<div class="lock" id="lockMessage">
+
+今日の割合は確認済みです。<br>
+次の確認は 10時間後にできます。
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+q:"節約するとしたら最初に減らす物は？",
+a:["外食","コンビニ","趣味","サブスク"]
+},
+
+{
+q:"一番やめにくい出費は？",
+a:["コーヒー","お菓子","外食","ネット購入"]
+},
+
+{
+q:"気づくと使っているお金は？",
+a:["コンビニ","飲み物","ネット購入","趣味"]
+},
+
+{
+q:"節約しても減らない物は？",
+a:["食費","通信費","日用品","趣味"]
+},
+
+{
+q:"つい買ってしまう物は？",
+a:["お菓子","飲み物","雑貨","セール品"]
+},
+
+{
+q:"節約中でも使いたい物は？",
+a:["趣味","外食","旅行","コーヒー"]
+},
+
+{
+q:"一番無駄だったと思う出費は？",
+a:["衝動買い","使わないサブスク","セール品","送料対策商品"]
+},
+
+{
+q:"安いと買いたくなる物は？",
+a:["お菓子","服","雑貨","日用品"]
+},
+
+{
+q:"お金が貯まりにくい原因は？",
+a:["外食","ネット購入","趣味","コンビニ"]
+},
+
+{
+q:"節約中によく我慢する物は？",
+a:["スイーツ","外食","趣味用品","飲み物"]
+},
+
+{
+q:"ポイントが貯まったら使う物は？",
+a:["食べ物","日用品","趣味用品","飲み物"]
+},
+
+{
+q:"節約が続かない理由は？",
+a:["ストレス","誘惑","面倒","習慣"]
+},
+
+{
+q:"毎月見直したい出費は？",
+a:["サブスク","食費","通信費","趣味"]
+},
+
+{
+q:"ついお金を使うタイミングは？",
+a:["仕事帰り","休日","深夜","給料日後"]
+},
+
+{
+q:"一番節約効果を感じる物は？",
+a:["外食","コンビニ","電気代","サブスク"]
+},
+
+{
+q:"節約中でもやめられない習慣は？",
+a:["コーヒー","動画視聴","ネット購入","外食"]
+},
+
+{
+q:"今すぐ減らしたい出費は？",
+a:["食費","ネット購入","サブスク","趣味"]
+},
+
+{
+q:"お金をかける価値があると思う物は？",
+a:["健康","趣味","旅行","食事"]
+},
+
+{
+q:"節約して浮いたお金を使うなら？",
+a:["貯金","旅行","趣味","買い物"]
+},
+
+{
+q:"一番お金を使わない日は？",
+a:["平日","休日","給料日前","雨の日"]
+},
+
+{
+q:"節約で一番大切だと思う事は？",
+a:["継続","我慢","計画","記録"]
+}
+
+];
+
+const LOCK_HOURS = 10;
+
+const saved = localStorage.getItem("saving_lock");
+
+if(saved){
+
+  const now = Date.now();
+
+  const diff = now - Number(saved);
+
+  if(diff < LOCK_HOURS * 60 * 60 * 1000){
+
+    document.getElementById("quizArea").style.display = "none";
+
+    document.getElementById("lockMessage").style.display = "block";
+
+  }else{
+
+    showQuestion();
+
+  }
+
+}else{
+
+  showQuestion();
+
+}
+
+function showQuestion(){
+
+  const random = questions[Math.floor(Math.random()*questions.length)];
+
+  document.getElementById("question").innerHTML = random.q;
+
+  const options = document.getElementById("options");
+
+  random.a.forEach(text=>{
+
+    const btn = document.createElement("button");
+
+    btn.className = "option";
+
+    btn.innerText = text;
+
+    btn.onclick = ()=>selectOption();
+
+    options.appendChild(btn);
+
+  });
+
+}
+
+function selectOption(){
+
+  localStorage.setItem("saving_lock",Date.now());
+
+  document.querySelectorAll(".option").forEach(btn=>{
+
+    btn.disabled = true;
+
+  });
+
+  const percent = makePercent();
+
+  document.getElementById("percent").innerText = percent + "%";
+
+  makeBoxes(percent);
+
+  makeMessage(percent);
+
+  document.getElementById("resultWrap").style.display = "block";
+
+}
+
+function makePercent(){
+
+  const arr = [
+    31,34,37,41,43,46,
+    52,57,61,63,67,
+    72,74,76,79,83,86
+  ];
+
+  return arr[Math.floor(Math.random()*arr.length)];
+
+}
+
+function makeBoxes(percent){
+
+  const wrap = document.getElementById("barWrap");
+
+  wrap.innerHTML = "";
+
+  const active = Math.round(percent / 10);
+
+  for(let i=0;i<10;i++){
+
+    const box = document.createElement("div");
+
+    if(i<3){
+
+      box.className = "box red";
+
+    }else if(i<6){
+
+      box.className = "box yellow";
+
+    }else{
+
+      box.className = "box green";
+
+    }
+
+    if(i < active){
+
+      box.style.opacity = "1";
+
+    }
+
+    wrap.appendChild(box);
+
+  }
+
+}
+
+function makeMessage(percent){
+
+  let text = "";
+
+  if(percent <= 40){
+
+    text = "少数派になりやすい反応です";
+
+  }
+  else if(percent <= 60){
+
+    text = "意外と近い反応が集まっています";
+
+  }
+  else if(percent <= 80){
+
+    text = "かなり共感されやすい選択です";
+
+  }
+  else{
+
+    text = "かなり多く選ばれている反応です";
+
+  }
+
+  document.getElementById("message").innerHTML = text;
+
+}
+
+function goCategoryTop(){
+
+  location.href = "../";
+
+}
+
+</script>
+
+</body>
+</html>
