@@ -1,1 +1,492 @@
-living/ 準備中
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>一人暮らしチェック</title>
+
+<style>
+
+body{
+  margin:0;
+  padding:20px;
+  background:#f5f5f5;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:480px;
+  background:#fff;
+  border-radius:22px;
+  padding:28px 20px;
+  box-sizing:border-box;
+  box-shadow:0 4px 18px rgba(0,0,0,0.08);
+}
+
+.title{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:6px;
+  color:#111;
+}
+
+.sub{
+  text-align:center;
+  font-size:14px;
+  color:#666;
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+.question{
+  font-size:24px;
+  font-weight:700;
+  text-align:center;
+  line-height:1.5;
+  margin-bottom:30px;
+  color:#111;
+}
+
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.option{
+  border:none;
+  border-radius:14px;
+  padding:7px;
+  font-size:18px;
+  font-weight:700;
+  background:#f1f1f1;
+  color:#111;
+  cursor:pointer;
+  transition:0.15s;
+}
+
+.option:active{
+  transform:scale(0.98);
+}
+
+.result-wrap{
+  display:none;
+  margin-top:30px;
+  text-align:center;
+}
+
+.result-text{
+  font-size:18px;
+  color:#666;
+  margin-bottom:8px;
+}
+
+.percent{
+  font-size:68px;
+  font-weight:800;
+  line-height:1;
+  margin-bottom:16px;
+  color:#111;
+}
+
+.percent-sub{
+  font-size:18px;
+  color:#666;
+  margin-bottom:22px;
+}
+
+.bar-wrap{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-bottom:24px;
+}
+
+.box{
+  width:22px;
+  height:22px;
+  border-radius:4px;
+  opacity:0.2;
+}
+
+.red{
+  background:#ffb3b3;
+}
+
+.yellow{
+  background:#ffe69b;
+}
+
+.green{
+  background:#b8f5b8;
+}
+
+.message{
+  font-size:17px;
+  line-height:1.7;
+  color:#444;
+  margin-top:12px;
+}
+
+.lock{
+  text-align:center;
+  font-size:18px;
+  line-height:1.9;
+  color:#444;
+  padding:36px 8px;
+  display:none;
+}
+
+.category-link{
+  margin-top:18px;
+  font-size:20px;
+  font-weight:700;
+  color:#222;
+  cursor:pointer;
+}
+
+.footer{
+  margin-top:48px;
+  text-align:center;
+  font-size:12px;
+  color:#999;
+  line-height:1.7;
+  opacity:0.75;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">一人暮らしチェック</div>
+
+<div class="sub">
+選ぶだけで<br>
+今の反応割合が表示されます
+</div>
+
+<div id="quizArea">
+
+<div class="question" id="question"></div>
+
+<div class="options" id="options"></div>
+
+<div class="result-wrap" id="resultWrap">
+
+<div class="result-text">
+あなたの選択は
+</div>
+
+<div class="percent" id="percent">
+67%
+</div>
+
+<div class="percent-sub">
+この選択でした
+</div>
+
+<div class="bar-wrap" id="barWrap"></div>
+
+<div class="message" id="message"></div>
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+</div>
+
+<div class="lock" id="lockMessage">
+
+今日の割合は確認済みです。<br>
+次の確認は 10時間後にできます。
+
+<div class="category-link" onclick="goCategoryTop()">
+他のカテゴリを見る
+</div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+q:"一人暮らしで一番お金がかかる物は？",
+a:["食費","家賃","光熱費","趣味"]
+},
+
+{
+q:"一人暮らしで節約しにくい物は？",
+a:["食費","外食","趣味","ネット購入"]
+},
+
+{
+q:"気づくと減っている物は？",
+a:["食材","トイレットペーパー","洗剤","飲み物"]
+},
+
+{
+q:"一人暮らしで後回しにしがちな事は？",
+a:["掃除","洗濯","自炊","ゴミ出し"]
+},
+
+{
+q:"家に帰って最初にする事は？",
+a:["スマホを見る","食事","シャワー","横になる"]
+},
+
+{
+q:"一人暮らしで一番面倒な事は？",
+a:["掃除","洗濯","料理","買い物"]
+},
+
+{
+q:"休日についサボる事は？",
+a:["掃除","洗濯","料理","外出"]
+},
+
+{
+q:"一人暮らしで毎回困る物は？",
+a:["収納","洗濯物","ゴミ","食材管理"]
+},
+
+{
+q:"夜に食べがちな物は？",
+a:["カップ麺","アイス","お菓子","冷凍食品"]
+},
+
+{
+q:"一番節約しにくい物は？",
+a:["食費","飲み物","電気代","ネット購入"]
+},
+
+{
+q:"家に多くある物は？",
+a:["段ボール","袋","ペットボトル","コード類"]
+},
+
+{
+q:"つい買いすぎる物は？",
+a:["食材","お菓子","飲み物","日用品"]
+},
+
+{
+q:"冷蔵庫で余りがちな物は？",
+a:["野菜","調味料","飲み物","冷凍食品"]
+},
+
+{
+q:"一人暮らしで増えやすい出費は？",
+a:["外食","コンビニ","ネット購入","趣味"]
+},
+
+{
+q:"今すぐ補充したい物は？",
+a:["トイレットペーパー","洗剤","飲み物","食品"]
+},
+
+{
+q:"家で一番長く使っている物は？",
+a:["家具","家電","食器","収納用品"]
+},
+
+{
+q:"一人暮らしで一番大事だと思う物は？",
+a:["冷蔵庫","洗濯機","電子レンジ","ベッド"]
+},
+
+{
+q:"一人暮らしでやめられない習慣は？",
+a:["夜更かし","ネット購入","外食","動画視聴"]
+},
+
+{
+q:"引っ越しするなら優先したい物は？",
+a:["家賃","立地","広さ","設備"]
+},
+
+{
+q:"一人暮らしで一番お金を使う場所は？",
+a:["スーパー","コンビニ","ネット通販","外食"]
+},
+
+{
+q:"一人暮らしの楽しみは？",
+a:["自由な時間","好きな食事","買い物","趣味"]
+}
+
+];
+
+const LOCK_HOURS = 10;
+
+const saved = localStorage.getItem("living_lock");
+
+if(saved){
+
+  const now = Date.now();
+
+  const diff = now - Number(saved);
+
+  if(diff < LOCK_HOURS * 60 * 60 * 1000){
+
+    document.getElementById("quizArea").style.display = "none";
+
+    document.getElementById("lockMessage").style.display = "block";
+
+  }else{
+
+    showQuestion();
+
+  }
+
+}else{
+
+  showQuestion();
+
+}
+
+function showQuestion(){
+
+  const random = questions[Math.floor(Math.random()*questions.length)];
+
+  document.getElementById("question").innerHTML = random.q;
+
+  const options = document.getElementById("options");
+
+  random.a.forEach(text=>{
+
+    const btn = document.createElement("button");
+
+    btn.className = "option";
+
+    btn.innerText = text;
+
+    btn.onclick = ()=>selectOption();
+
+    options.appendChild(btn);
+
+  });
+
+}
+
+function selectOption(){
+
+  localStorage.setItem("living_lock",Date.now());
+
+  document.querySelectorAll(".option").forEach(btn=>{
+
+    btn.disabled = true;
+
+  });
+
+  const percent = makePercent();
+
+  document.getElementById("percent").innerText = percent + "%";
+
+  makeBoxes(percent);
+
+  makeMessage(percent);
+
+  document.getElementById("resultWrap").style.display = "block";
+
+}
+
+function makePercent(){
+
+  const arr = [
+    31,34,37,41,43,46,
+    52,57,61,63,67,
+    72,74,76,79,83,86
+  ];
+
+  return arr[Math.floor(Math.random()*arr.length)];
+
+}
+
+function makeBoxes(percent){
+
+  const wrap = document.getElementById("barWrap");
+
+  wrap.innerHTML = "";
+
+  const active = Math.round(percent / 10);
+
+  for(let i=0;i<10;i++){
+
+    const box = document.createElement("div");
+
+    if(i<3){
+
+      box.className = "box red";
+
+    }else if(i<6){
+
+      box.className = "box yellow";
+
+    }else{
+
+      box.className = "box green";
+
+    }
+
+    if(i < active){
+
+      box.style.opacity = "1";
+
+    }
+
+    wrap.appendChild(box);
+
+  }
+
+}
+
+function makeMessage(percent){
+
+  let text = "";
+
+  if(percent <= 40){
+
+    text = "少数派になりやすい反応です";
+
+  }
+  else if(percent <= 60){
+
+    text = "意外と近い反応が集まっています";
+
+  }
+  else if(percent <= 80){
+
+    text = "かなり共感されやすい選択です";
+
+  }
+  else{
+
+    text = "かなり多く選ばれている反応です";
+
+  }
+
+  document.getElementById("message").innerHTML = text;
+
+}
+
+function goCategoryTop(){
+
+  location.href = "../";
+
+}
+
+</script>
+
+</body>
+</html>
